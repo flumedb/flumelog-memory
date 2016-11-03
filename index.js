@@ -4,14 +4,15 @@ var Obv = require('obv')
 //could extend this to be an append only json log, that got saved and recovered from disk, too
 //and that might be useful because it would be a less code than offset log and thus easier to think about.
 
+
+//TODO: take an optional file name, and if provided, persist to an line delimited json file.
 module.exports = function () {
 
   var log = [], since = Obv()
 
   since.set(-1)
-
   return {
-
+    dir: null,
     get: function (n, cb) {
       if(n > log.length || n < 0) return cb(new Error('not found'))
       else cb(null, log[n])
@@ -71,4 +72,5 @@ module.exports = function () {
     }
   }
 }
+
 
