@@ -12,10 +12,11 @@
   },
   "devDependencies": {
     "pull-stream": "^3.5.0",
-    "tape": "^4.6.2"
+    "tape": "^4.6.2",
+    "test-flumelog": "^0.0.1"
   },
   "scripts": {
-    "test": "set -e; for t in test/*.js; do node $t; done"
+    "test": "node test.js"
   },
   "author": "'Dominic Tarr' <dominic.tarr@gmail.com> (dominictarr.com)",
   "license": "MIT"
