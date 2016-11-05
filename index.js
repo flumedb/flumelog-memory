@@ -1,4 +1,5 @@
 var Obv = require('obv')
+var Append = require('append-batch')
 
 //a fake log that is all in memory.
 //could extend this to be an append only json log, that got saved and recovered from disk, too
@@ -6,11 +7,38 @@ var Obv = require('obv')
 
 
 //TODO: take an optional file name, and if provided, persist to an line delimited json file.
-module.exports = function () {
+module.exports = function (filename) {
 
-  var log = [], since = Obv()
+  var log = [], since = Obv(), last
 
   since.set(-1)
+  //scan the whole log, and set the last value...
+
+  if(filename)
+    pull(
+      File(filename),
+      Split(null, null, JSON.parse),
+      pull.drain(function (data) {
+        last = data.seq
+        log.push(data.value)
+      }, function (err) {
+        if(err) since.set(-1)
+        else since.set(last || -1)
+      })
+    )
+
+  var append = Append(function (batch, cb) {
+    if(!filename) next()
+    else fs.appendFile(filename, batch.map(JSON.stringify).join('\n'), next)
+
+    function next(err) {
+      if(err) return cb(err)
+      batch.forEach(function (v) { log.push(v) })
+      since.set(log.length - 1)
+      cb(null, since.value)
+    }
+  })
+
   return {
     dir: null,
     get: function (n, cb) {
@@ -61,16 +89,9 @@ module.exports = function () {
         else cb(null, get(inc()))
       }
     },
-    append: function (value, cb) {
-      if(Array.isArray(value))
-        log = log.concat(value)
-      else
-        log.push(value)
-      console.log(log)
-      since.set(log.length - 1)
-      cb(null, log.length - 1)
-    }
+    append: append
   }
 }
+
 
 
