@@ -1,5 +1,12 @@
+'use strict'
 var Obv = require('obv')
 var Append = require('append-batch')
+var pull = require('pull-stream')
+var File = require('pull-file')
+var Split = require('pull-split')
+var fs = require('fs')
+var mkdirp = require('mkdirp')
+var path = require('path')
 
 //a fake log that is all in memory.
 //could extend this to be an append only json log, that got saved and recovered from disk, too
@@ -11,25 +18,28 @@ module.exports = function (filename) {
 
   var log = [], since = Obv(), last
 
-  since.set(-1)
   //scan the whole log, and set the last value...
-
-  if(filename)
-    pull(
-      File(filename),
-      Split(null, null, JSON.parse),
-      pull.drain(function (data) {
-        last = data.seq
-        log.push(data.value)
-      }, function (err) {
-        if(err) since.set(-1)
-        else since.set(last || -1)
-      })
-    )
+  if(filename) {
+    mkdirp(path.dirname(filename), function () {
+      pull(
+        File(filename),
+        Split('\n', JSON.parse, false, true),
+        pull.drain(function (data) {
+          last = log.push(data) - 1
+        }, function (err) {
+          if(err) since.set(-1)
+          else since.set(last || -1)
+        })
+      )
+    })
+  }
+  else
+    since.set(-1)
 
   var append = Append(function (batch, cb) {
+    var last = log.length
     if(!filename) next()
-    else fs.appendFile(filename, batch.map(JSON.stringify).join('\n'), next)
+    else fs.appendFile(filename, batch.map(JSON.stringify).join('\n')+'\n', next)
 
     function next(err) {
       if(err) return cb(err)
@@ -80,8 +90,9 @@ module.exports = function (filename) {
         else if(cursor >= log.length) {
           if(live) {
             _cb = cb;
-            cleanup = since.once(function (value) {
-              cb(null, get(inc()))
+            cleanup = since.once(function next (value) {
+              if(value === -1) since.once(next, false)
+              else cb(null, get(inc()))
             }, false)
           }
           else     cb(true)
@@ -92,6 +103,14 @@ module.exports = function (filename) {
     append: append
   }
 }
+
+
+
+
+
+
+
+
 
 
 
