@@ -8,7 +8,11 @@
     "url": "git://github.com/dominictarr/flumedb-memlog.git"
   },
   "dependencies": {
-    "obv": "0.0.0"
+    "append-batch": "0.0.1",
+    "obv": "0.0.0",
+    "pull-file": "^1.0.0",
+    "pull-split": "^0.2.0",
+    "pull-stream": "^3.5.0"
   },
   "devDependencies": {
     "pull-stream": "^3.5.0",
