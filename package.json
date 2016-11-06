@@ -1,11 +1,11 @@
 {
-  "name": "flumedb-memlog",
+  "name": "flumelog-memory",
   "description": "",
   "version": "0.1.0",
-  "homepage": "https://github.com/dominictarr/flumedb-memlog",
+  "homepage": "https://github.com/dominictarr/flumelog-memory",
   "repository": {
     "type": "git",
-    "url": "git://github.com/dominictarr/flumedb-memlog.git"
+    "url": "git://github.com/dominictarr/flumelog-memory.git"
   },
   "dependencies": {
     "append-batch": "0.0.1",
