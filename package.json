@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "append-batch": "0.0.1",
+    "mkdirp": "^0.5.1",
     "obv": "0.0.0",
     "pull-file": "^1.0.0",
     "pull-split": "^0.2.0",
