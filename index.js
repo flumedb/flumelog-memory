@@ -25,10 +25,10 @@ module.exports = function (filename) {
         File(filename),
         Split('\n', JSON.parse, false, true),
         pull.drain(function (data) {
-          last = log.push(data) - 1
+          last = log.push(data.value) - 1
         }, function (err) {
           if(err) since.set(-1)
-          else since.set(last || -1)
+          else since.set(last == null ?  -1 : last)
         })
       )
     })
@@ -39,7 +39,9 @@ module.exports = function (filename) {
   var append = Append(function (batch, cb) {
     var last = log.length
     if(!filename) next()
-    else fs.appendFile(filename, batch.map(JSON.stringify).join('\n')+'\n', next)
+    else fs.appendFile(filename, batch.map(function (e, i) {
+      return {seq: last + i, value: e}
+    }).map(JSON.stringify).join('\n')+'\n', next)
 
     function next(err) {
       if(err) return cb(err)
@@ -103,14 +105,4 @@ module.exports = function (filename) {
     append: append
   }
 }
-
-
-
-
-
-
-
-
-
-
 
