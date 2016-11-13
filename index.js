@@ -84,15 +84,16 @@ module.exports = function (filename) {
 
       return function (abort, cb) {
         if(abort) {
-          if(cleanup) {cleanup(); _cb(abort)}
+          if(cleanup) {cleanup(); _cb(abort) }
           return cb(abort)
         }
         else if (cursor < min) cb(true)
         else if(!live && cursor > (max === null ? log.length-1 : max)) cb(true)
         else if(cursor >= log.length) {
           if(live) {
-            _cb = cb;
+            _cb = cb
             cleanup = since.once(function next (value) {
+              cleanup = null
               if(value === -1) since.once(next, false)
               else cb(null, get(inc()))
             }, false)
