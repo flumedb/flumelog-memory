@@ -17,6 +17,7 @@
     "pull-stream": "^3.5.0"
   },
   "devDependencies": {
+    "bench-flumelog": "^1.0.1",
     "pull-stream": "^3.5.0",
     "tape": "^4.6.2",
     "test-flumelog": "^1.0.0"
