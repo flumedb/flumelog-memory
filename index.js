@@ -7,6 +7,7 @@ var Split = require('pull-split')
 var fs = require('fs')
 var mkdirp = require('mkdirp')
 var path = require('path')
+var pullCursor = require('pull-cursor')
 
 //a fake log that is all in memory.
 //could extend this to be an append only json log, that got saved and recovered from disk, too
@@ -51,6 +52,10 @@ module.exports = function (filename) {
     }
   })
 
+  var createStream = pullCursor(since, function (index, cb) {
+    cb(null, log[index], index-1, index+1)
+  })
+
   return {
     dir: null,
     get: function (n, cb) {
@@ -61,49 +66,13 @@ module.exports = function (filename) {
     since: since,
 
     stream: function (opts) {
-      opts = opts || {}
-      var cleanup, _cb
-      var reverse = opts.reverse
-      var min  = opts.gt != null ? opts.gt + 1 : opts.gte != null ? opts.gte : 0
-      var max  = opts.lt != null ? opts.lt - 1 : opts.lte != null ? opts.lte : null
-      var cursor = reverse ? max || log.length - 1 : min
-      var values = opts.values !== false, seqs = opts.seqs !== false
-      var live = opts.live === true
-
-      function inc () {
-        var _cursor = cursor
-        cursor += reverse ? -1 : 1
-        return _cursor
-      }
-
-      function get(seq) {
-        if(seqs && values) return {seq: seq, value: log[seq]}
-        else if(seqs) return seq
-        else return log[seq]
-      }
-
-      return function (abort, cb) {
-        if(abort) {
-          if(cleanup) {cleanup(); _cb(abort) }
-          return cb(abort)
-        }
-        else if (cursor < min) cb(true)
-        else if(!live && cursor > (max === null ? log.length-1 : max)) cb(true)
-        else if(cursor >= log.length) {
-          if(live) {
-            _cb = cb
-            cleanup = since.once(function next (value) {
-              cleanup = null
-              if(value === -1) since.once(next, false)
-              else cb(null, get(inc()))
-            }, false)
-          }
-          else     cb(true)
-        }
-        else cb(null, get(inc()))
-      }
+      return createStream(opts)
     },
     append: append
   }
 }
+
+
+
+
 
