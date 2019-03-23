@@ -57,7 +57,7 @@ module.exports = function (filename) {
   })
 
   return {
-    dir: null,
+    filename: filename,
     get: function (n, cb) {
       if(n > log.length || n < 0) return cb(new Error('not found'))
       else cb(null, log[n])
@@ -71,8 +71,4 @@ module.exports = function (filename) {
     append: append
   }
 }
-
-
-
-
 
