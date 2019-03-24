@@ -68,7 +68,10 @@ module.exports = function (filename) {
     stream: function (opts) {
       return createStream(opts)
     },
-    append: append
+    append: append,
+    close: function (cb) {
+      cb()
+    }
   }
 }
 
