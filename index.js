@@ -8,7 +8,9 @@ var fs = require('fs')
 var mkdirp = require('mkdirp')
 var path = require('path')
 var pullCursor = require('pull-cursor')
-
+var praf = require('pull-random-access')
+var rafAppend = require('raf-append')
+var RAF = require('random-access-file')
 //a fake log that is all in memory.
 //could extend this to be an append only json log, that got saved and recovered from disk, too
 //and that might be useful because it would be a less code than offset log and thus easier to think about.
@@ -19,20 +21,20 @@ module.exports = function (filename) {
 
   var log = [], since = Obv(), last
 
+  var raf = RAF(filename)
+
   //scan the whole log, and set the last value...
   if(filename) {
-    mkdirp(path.dirname(filename), function () {
-      pull(
-        File(filename),
-        Split('\n', JSON.parse, false, true),
-        pull.drain(function (data) {
-          last = log.push(data.value) - 1
-        }, function (err) {
-          if(err) since.set(-1)
-          else since.set(last == null ?  -1 : last)
-        })
-      )
-    })
+    pull(
+      praf(raf, {}),
+      Split('\n', JSON.parse, false, true),
+      pull.drain(function (data) {
+        last = log.push(data.value) - 1
+      }, function (err) {
+        if(err) since.set(-1)
+        else since.set(last == null ?  -1 : last)
+      })
+    )
   }
   else
     since.set(-1)
@@ -40,9 +42,9 @@ module.exports = function (filename) {
   var append = Append(function (batch, cb) {
     var last = log.length
     if(!filename) next()
-    else fs.appendFile(filename, batch.map(function (e, i) {
+    else rafAppend(raf, Buffer.from(batch.map(function (e, i) {
       return {seq: last + i, value: e}
-    }).map(JSON.stringify).join('\n')+'\n', next)
+    }).map(JSON.stringify).join('\n')+'\n'), next)
 
     function next(err) {
       if(err) return cb(err)
@@ -70,8 +72,9 @@ module.exports = function (filename) {
     },
     append: append,
     close: function (cb) {
-      cb()
+      raf.close(cb)
     }
   }
 }
+
 
