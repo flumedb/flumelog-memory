@@ -1,6 +1,8 @@
-require('test-flumelog')(function () {
-  return require('../')('/tmp/test_flumelog-memory'+Date.now())
+require('test-flumelog')(function (file, seed) {
+  return require('../')(file)
 }, function () {
   console.log('done')
 })
+
+
 
