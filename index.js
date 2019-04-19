@@ -10,7 +10,7 @@ var path = require('path')
 var pullCursor = require('pull-cursor')
 var praf = require('pull-random-access')
 var rafAppend = require('raf-append')
-var RAF = require('random-access-file')
+var PolyRAF = require('polyraf')
 //a fake log that is all in memory.
 //could extend this to be an append only json log, that got saved and recovered from disk, too
 //and that might be useful because it would be a less code than offset log and thus easier to think about.
@@ -21,7 +21,7 @@ module.exports = function (filename) {
 
   var log = [], since = Obv(), last
 
-  var raf = RAF(filename)
+  var raf = PolyRAF(filename)
 
   //scan the whole log, and set the last value...
   if(filename) {
