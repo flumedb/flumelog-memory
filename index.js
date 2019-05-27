@@ -21,10 +21,10 @@ module.exports = function (filename) {
 
   var log = [], since = Obv(), last
 
-  var raf = PolyRAF(filename)
 
   //scan the whole log, and set the last value...
   if(filename) {
+    var raf = PolyRAF(filename)
     pull(
       praf(raf, {}),
       Split('\n', JSON.parse, false, true),
@@ -72,9 +72,11 @@ module.exports = function (filename) {
     },
     append: append,
     close: function (cb) {
-      raf.close(cb)
+      if(raf && raf.close) raf.close(cb)
+      else cb()
     }
   }
 }
+
 
 
